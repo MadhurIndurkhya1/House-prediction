@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bengaluru House Price Predictor | ML Web App</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <!-- Premium Interactive Background -->
+    <div class="background-decor">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+        <div class="glow-orb orb-3"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Humanized Header -->
+        <header>
+
+            <div class="logo">
+                <h1>Bengaluru House Price Estimator</h1>
+            </div>
+            <p class="subtitle">An end-to-end Machine Learning web service built to estimate real estate valuation in
+                Bengaluru based on property metrics.</p>
+        </header>
+
+        <!-- Main Workspace (Inputs & Results) -->
+        <main class="dashboard-grid">
+            <!-- Input Form Card -->
+            <section class="card glass-card form-section">
+                <h3 class="section-title">Property Configuration</h3>
+                <form id="prediction-form" autocomplete="off">
+                    <!-- Location Selector -->
+                    <div class="input-group">
+                        <label for="location-search">Select Location</label>
+                        <div class="searchable-select" id="location-select-container">
+                            <div class="search-input-wrapper">
+                                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                                <input type="text" id="location-search"
+                                    placeholder="Type to search location... (e.g. JP Nagar)" required>
+                                <button type="button" class="clear-btn" id="location-clear"
+                                    style="display: none;">&times;</button>
+                            </div>
+                            <div class="select-dropdown" id="location-dropdown">
+                                <div class="dropdown-status" id="dropdown-status">Loading locations...</div>
+                                <ul class="dropdown-list" id="location-list" style="display: none;"></ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Sqft Area -->
+                    <div class="input-group">
+                        <label for="total_sqft">Built-Up Area</label>
+                        <div class="numeric-input-wrapper">
+                            <input type="number" id="total_sqft" name="total_sqft" min="100" max="50000"
+                                placeholder="e.g. 1500" required>
+                            <span class="input-unit">sq. ft.</span>
+                        </div>
+                    </div>
+
+                    <!-- BHK Pill Select -->
+                    <div class="input-group">
+                        <label>Bedrooms (BHK)</label>
+                        <div class="segmented-control">
+                            <input type="radio" id="bhk-1" name="bhk" value="1">
+                            <label for="bhk-1">1</label>
+
+                            <input type="radio" id="bhk-2" name="bhk" value="2" checked>
+                            <label for="bhk-2">2</label>
+
+                            <input type="radio" id="bhk-3" name="bhk" value="3">
+                            <label for="bhk-3">3</label>
+
+                            <input type="radio" id="bhk-4" name="bhk" value="4">
+                            <label for="bhk-4">4</label>
+
+                            <input type="radio" id="bhk-5" name="bhk" value="5">
+                            <label for="bhk-5">5+</label>
+                        </div>
+                    </div>
+
+                    <!-- Bathrooms Pill Select -->
+                    <div class="input-group">
+                        <label>Bathrooms</label>
+                        <div class="segmented-control">
+                            <input type="radio" id="bath-1" name="bath" value="1">
+                            <label for="bath-1">1</label>
+
+                            <input type="radio" id="bath-2" name="bath" value="2" checked>
+                            <label for="bath-2">2</label>
+
+                            <input type="radio" id="bath-3" name="bath" value="3">
+                            <label for="bath-3">3</label>
+
+                            <input type="radio" id="bath-4" name="bath" value="4">
+                            <label for="bath-4">4</label>
+
+                            <input type="radio" id="bath-5" name="bath" value="5">
+                            <label for="bath-5">5+</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="submit-btn">
+                        <span>Calculate Estimate</span>
+                        <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </button>
+                </form>
+            </section>
+
+            <!-- Results Card -->
+            <section class="card glass-card result-section">
+                <div class="result-placeholder" id="result-placeholder">
+                    <div class="placeholder-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                        </svg>
+                    </div>
+                    <h3>Ready for Prediction</h3>
+                    <p>Enter the property specifications on the left, then click "Calculate Estimate" to predict the
+                        price.</p>
+                </div>
+
+                <div class="result-display" id="result-display" style="display: none;">
+                    <span class="result-badge">Estimated Valuation</span>
+
+                    <div class="price-container">
+                        <div class="price-value-wrapper">
+                            <span class="currency-symbol">₹</span>
+                            <h2 class="price-number" id="predicted-price">0.00</h2>
+                            <span class="price-unit">Lakh</span>
+                        </div>
+                        <p class="price-approx-inr" id="approx-inr-text">≈ ₹0.00</p>
+                    </div>
+
+                    <div class="property-summary-container">
+                        <h4>Property Summary</h4>
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <span class="summary-label">Location</span>
+                                <span class="summary-value" id="summary-loc">-</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Built-up Area</span>
+                                <span class="summary-value" id="summary-area">-</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Bedrooms</span>
+                                <span class="summary-value" id="summary-bhk">-</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Bathrooms</span>
+                                <span class="summary-value" id="summary-bath">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="price-alert-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        <p>This is a linear regression ML model prediction based on historical Bengaluru real estate
+                            data.</p>
+                    </div>
+                </div>
+
+                <div class="result-loader" id="result-loader" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Evaluating pricing metrics...</p>
+                </div>
+            </section>
+        </main>
+
+        <!-- Dynamic Bottom Layout (Model Details & Human Creator Card) -->
+        <section class="bottom-grid">
+            <!-- Model Description Section -->
+            <section class="card glass-card info-section">
+                <h3 class="section-title">Model Architecture & Insights</h3>
+                <div class="info-content">
+                    <p>This model is built using a scikit-learn machine learning pipeline utilizing a regularized
+                        <strong>Linear Regression (Ridge)</strong> algorithm to predict property prices in Bengaluru.
+                    </p>
+
+                    <div class="features-list">
+                        <div class="feature-tag">Pipeline Workflow</div>
+                        <p class="feature-desc">Input features are mapped through a <code>ColumnTransformer</code>.
+                            Categorical locations are <strong>One-Hot Encoded</strong> while numeric inputs are
+                            standardized via a <strong>StandardScaler</strong> before fitting the estimator.</p>
+
+                        <div class="feature-tag">Outlier Preprocessing</div>
+                        <p class="feature-desc">Cleaned dataset outliers were pruned by removing records with area
+                            smaller than <strong>300 sq. ft. per BHK</strong> and filtering out local price-per-sqft
+                            anomalies outside one standard deviation (±1σ).</p>
+                    </div>
+
+                    <div class="metrics-grid">
+                        <div class="metric-box">
+                            <span class="metric-num">~84%</span>
+                            <span class="metric-lbl">Model R² Score</span>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-num">242</span>
+                            <span class="metric-lbl">Unique Locations</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Human Profile & Links Section -->
+            <section class="card glass-card developer-section">
+                <h3 class="section-title">Developer & Project Resources</h3>
+                <div class="developer-info">
+                    <div class="dev-header">
+                        <div class="dev-avatar">MI</div>
+                        <div>
+                            <h4>Madhur Indurkhya</h4>
+                            <p class="dev-title">Machine Learning</p>
+                        </div>
+                    </div>
+
+                    <p class="dev-bio">I created this end-to-end interface to bridge raw statistical predictors with
+                        clean, interactive user interfaces. Feel free to explore the repository or connect with me via
+                        the links below.</p>
+
+                    <div class="project-links-grid">
+                        <a href="https://github.com/MadhurIndurkhya1/House-prediction" target="_blank"
+                            class="link-chip github">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                class="link-icon">
+                                <path
+                                    d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+                                </path>
+                            </svg>
+                            <span>GitHub</span>
+                        </a>
+
+                        <a href="https://madhur-indurkhya.vercel.app/" target="_blank" class="link-chip portfolio">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                class="link-icon">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                <path
+                                    d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                </path>
+                            </svg>
+                            <span>Portfolio Website</span>
+                        </a>
+
+                        <a href="https://www.kaggle.com/datasets/amitabhajoy/bengaluru-house-price-data" target="_blank"
+                            class="link-chip database">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                class="link-icon">
+                                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                                <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"></path>
+                            </svg>
+                            <span>Kaggle Dataset</span>
+                        </a>
+
+                        <a href="https://www.linkedin.com/in/madhur-indurkhya/" target="_blank"
+                            class="link-chip linkedin">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                class="link-icon">
+                                <path
+                                    d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z">
+                                </path>
+                                <rect x="2" y="9" width="4" height="12"></rect>
+                                <circle cx="4" cy="4" r="2"></circle>
+                            </svg>
+                            <span>LinkedIn Profile</span>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+        </section>
+        <div class="developer-badge">
+            <span class="avatar-dot"></span>
+            <span>Designed & Programmed by Madhur Indurkhya</span>
+        </div>
+
+
+        <!-- Elegant Footer -->
+        <footer>
+            <p>© 2026 Bengaluru Real Estate Analytics. Handcrafted by <a href="https://github.com/madhurindurkhya"
+                    target="_blank" class="footer-link">Madhur Indurkhya</a>. Powered by Flask & scikit-learn.</p>
+        </footer>
+    </div>
+
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+
+</html>
